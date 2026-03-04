@@ -2,22 +2,22 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "c2ce82d0-b5f8-43cf-9861-de8c5a6fea9c",
+  "uuid": "b6d3fdec-2e54-48a1-a9bb-82d32f908e9a",
   "files": [
     ".json",
-    ".png"
+    ".webp"
   ],
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "c2ce82d0-b5f8-43cf-9861-de8c5a6fea9c@6c48a",
-      "displayName": "Dot_Green",
+      "uuid": "b6d3fdec-2e54-48a1-a9bb-82d32f908e9a@6c48a",
+      "displayName": "Lotus",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "c2ce82d0-b5f8-43cf-9861-de8c5a6fea9c",
+        "imageUuidOrDatabaseUri": "b6d3fdec-2e54-48a1-a9bb-82d32f908e9a",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "c2ce82d0-b5f8-43cf-9861-de8c5a6fea9c@f9941",
-      "displayName": "Dot_Green",
+      "uuid": "b6d3fdec-2e54-48a1-a9bb-82d32f908e9a@f9941",
+      "displayName": "Lotus",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -113,7 +113,7 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "c2ce82d0-b5f8-43cf-9861-de8c5a6fea9c@6c48a",
+        "imageUuidOrDatabaseUri": "b6d3fdec-2e54-48a1-a9bb-82d32f908e9a@6c48a",
         "atlasUuid": "",
         "trimType": "none"
       },
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "c2ce82d0-b5f8-43cf-9861-de8c5a6fea9c@6c48a"
+    "redirect": "b6d3fdec-2e54-48a1-a9bb-82d32f908e9a@6c48a"
   }
 }

@@ -29,10 +29,13 @@
     "_components": [
       {
         "__id__": 16
+      },
+      {
+        "__id__": 18
       }
     ],
     "_prefab": {
-      "__id__": 18
+      "__id__": 20
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -130,8 +133,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 76,
-      "height": 77
+      "width": 55,
+      "height": 55
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -167,12 +170,12 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "d9e190c6-55b9-491f-90f6-bfc603c1b02f@f9941",
+      "__uuid__": "b6d3fdec-2e54-48a1-a9bb-82d32f908e9a@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
     "_fillType": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
       "x": 0,
@@ -201,7 +204,7 @@
     "__prefab": {
       "__id__": 8
     },
-    "playOnLoad": false,
+    "playOnLoad": true,
     "_clips": [
       {
         "__uuid__": "6d79e412-8479-48a1-ac1b-5e2fd1a73b74",
@@ -295,8 +298,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 76,
-      "height": 77
+      "width": 55,
+      "height": 55
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -332,7 +335,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "4c835673-3899-4abb-92bc-3379fb367934@f9941",
+      "__uuid__": "b6d3fdec-2e54-48a1-a9bb-82d32f908e9a@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -381,8 +384,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 100
+      "width": 55,
+      "height": 55
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -394,6 +397,25 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "56o8nw/z1MPYxCrDxCILTf"
+  },
+  {
+    "__type__": "cc6ddMJ/K1LI4IBqBCtBfe3",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 19
+    },
+    "colorId": "lotus",
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "ebgmsf1z1MeIct7I0FYOAQ"
   },
   {
     "__type__": "cc.PrefabInfo",
