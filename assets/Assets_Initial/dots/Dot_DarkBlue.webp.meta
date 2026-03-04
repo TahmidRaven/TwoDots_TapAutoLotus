@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "9ba84db2-253c-45ec-84e2-d66cc7dfc58d",
+  "uuid": "9f74577c-bfe4-4b07-b8b6-e7401d3607cf",
   "files": [
     ".json",
     ".webp"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "9ba84db2-253c-45ec-84e2-d66cc7dfc58d@6c48a",
-      "displayName": "Dot_3",
+      "uuid": "9f74577c-bfe4-4b07-b8b6-e7401d3607cf@6c48a",
+      "displayName": "Dot_DarkBlue",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "9ba84db2-253c-45ec-84e2-d66cc7dfc58d",
+        "imageUuidOrDatabaseUri": "9f74577c-bfe4-4b07-b8b6-e7401d3607cf",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "9ba84db2-253c-45ec-84e2-d66cc7dfc58d@f9941",
-      "displayName": "Dot_3",
+      "uuid": "9f74577c-bfe4-4b07-b8b6-e7401d3607cf@f9941",
+      "displayName": "Dot_DarkBlue",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -53,7 +53,7 @@
         "borderBottom": 0,
         "borderLeft": 0,
         "borderRight": 0,
-        "packable": true,
+        "packable": false,
         "pixelsToUnit": 100,
         "pivotX": 0.5,
         "pivotY": 0.5,
@@ -113,9 +113,9 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "9ba84db2-253c-45ec-84e2-d66cc7dfc58d@6c48a",
+        "imageUuidOrDatabaseUri": "9f74577c-bfe4-4b07-b8b6-e7401d3607cf@6c48a",
         "atlasUuid": "",
-        "trimType": "auto"
+        "trimType": "none"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "9ba84db2-253c-45ec-84e2-d66cc7dfc58d@6c48a"
+    "redirect": "9f74577c-bfe4-4b07-b8b6-e7401d3607cf@6c48a"
   }
 }

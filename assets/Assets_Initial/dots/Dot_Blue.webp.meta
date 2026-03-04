@@ -11,7 +11,7 @@
     "6c48a": {
       "importer": "texture",
       "uuid": "054f768f-d499-4fe8-b547-ab43f272fb77@6c48a",
-      "displayName": "Dot_2",
+      "displayName": "Dot_Blue",
       "id": "6c48a",
       "name": "texture",
       "userData": {
@@ -35,7 +35,7 @@
     "f9941": {
       "importer": "sprite-frame",
       "uuid": "054f768f-d499-4fe8-b547-ab43f272fb77@f9941",
-      "displayName": "Dot_2",
+      "displayName": "Dot_Blue",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -53,7 +53,7 @@
         "borderBottom": 0,
         "borderLeft": 0,
         "borderRight": 0,
-        "packable": true,
+        "packable": false,
         "pixelsToUnit": 100,
         "pivotX": 0.5,
         "pivotY": 0.5,
@@ -115,7 +115,7 @@
         "isUuid": true,
         "imageUuidOrDatabaseUri": "054f768f-d499-4fe8-b547-ab43f272fb77@6c48a",
         "atlasUuid": "",
-        "trimType": "auto"
+        "trimType": "none"
       },
       "ver": "1.0.12",
       "imported": true,

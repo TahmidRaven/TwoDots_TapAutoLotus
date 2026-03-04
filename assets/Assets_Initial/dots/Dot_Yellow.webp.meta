@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "ae9ed417-f1d4-4789-8f60-8611ac866978",
+  "uuid": "7a7999d5-6f5e-417e-af69-87d80468a9ec",
   "files": [
     ".json",
     ".webp"
@@ -10,14 +10,14 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "ae9ed417-f1d4-4789-8f60-8611ac866978@6c48a",
-      "displayName": "Dot_4",
+      "uuid": "7a7999d5-6f5e-417e-af69-87d80468a9ec@6c48a",
+      "displayName": "Dot_Yellow",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
-        "imageUuidOrDatabaseUri": "ae9ed417-f1d4-4789-8f60-8611ac866978",
+        "imageUuidOrDatabaseUri": "7a7999d5-6f5e-417e-af69-87d80468a9ec",
         "isUuid": true,
         "visible": false,
         "minfilter": "linear",
@@ -34,8 +34,8 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "ae9ed417-f1d4-4789-8f60-8611ac866978@f9941",
-      "displayName": "Dot_4",
+      "uuid": "7a7999d5-6f5e-417e-af69-87d80468a9ec@f9941",
+      "displayName": "Dot_Yellow",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
@@ -53,7 +53,7 @@
         "borderBottom": 0,
         "borderLeft": 0,
         "borderRight": 0,
-        "packable": true,
+        "packable": false,
         "pixelsToUnit": 100,
         "pivotX": 0.5,
         "pivotY": 0.5,
@@ -113,9 +113,9 @@
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "ae9ed417-f1d4-4789-8f60-8611ac866978@6c48a",
+        "imageUuidOrDatabaseUri": "7a7999d5-6f5e-417e-af69-87d80468a9ec@6c48a",
         "atlasUuid": "",
-        "trimType": "auto"
+        "trimType": "none"
       },
       "ver": "1.0.12",
       "imported": true,
@@ -129,6 +129,6 @@
     "type": "sprite-frame",
     "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "ae9ed417-f1d4-4789-8f60-8611ac866978@6c48a"
+    "redirect": "7a7999d5-6f5e-417e-af69-87d80468a9ec@6c48a"
   }
 }
