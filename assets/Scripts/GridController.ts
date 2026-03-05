@@ -2,7 +2,7 @@ import { _decorator, Component, Node, Prefab, instantiate, UITransform, v3, Vec3
 import { GridPiece } from './GridPiece';
 import { GameManager } from './GameManager';
 import { LightningEffect } from './LightningEffect';
-import { MatchFinder } from './MatchFinder';
+import { MatchFinder, MatchLink } from './MatchFinder';
 
 const { ccclass, property } = _decorator;
 
@@ -16,13 +16,12 @@ export class GridController extends Component {
     @property(CCInteger) rows: number = 9;
     @property(CCInteger) cols: number = 9;
     @property(CCFloat) cellSize: number = 55; 
-    @property(CCFloat) padding: number = 10; // Adjust this to add space between dots
+    @property(CCFloat) padding: number = 10; 
     @property(CCFloat) gridScale: number = 1.0;
 
     private grid: (Node | null)[][] = [];
     private isProcessing: boolean = false;
 
-    // Returns the total distance between the centers of two adjacent dots
     private get spacing(): number {
         return this.cellSize + this.padding;
     }
@@ -74,13 +73,16 @@ export class GridController extends Component {
         const piece = targetNode.getComponent(GridPiece);
         if (!piece) return;
 
-        const matches = MatchFinder.getAdjacentMatches(r, c, piece.colorId, this.grid, this.rows, this.cols);
-        if (matches.length > 0) {
-            this.executeLotusSequence(piece.colorId, r, c, matches);
+        // Using the new chain search
+        const links = MatchFinder.getChainMatches(r, c, piece.colorId, this.grid, this.rows, this.cols);
+        
+        if (links.length > 0) {
+            this.executeLotusSequence(piece.colorId, r, c, links);
         }
     }
 
-    private executeLotusSequence(colorId: string, startR: number, startC: number, matches: Node[]) {
+    // Changed to async to support the "traveling" delay
+    private async executeLotusSequence(colorId: string, startR: number, startC: number, links: MatchLink[]) {
         this.isProcessing = true;
         const startNode = this.grid[startR][startC]!;
         const lotusPos = v3(startNode.position);
@@ -94,32 +96,39 @@ export class GridController extends Component {
         this.grid[startR][startC] = lotus;
         lotus.getComponent(Animation)?.play();
 
+        // Wait slightly for the lotus to bloom
+        await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
+
+        // PHASE 2: DRAW SEQUENTIAL LINES
+        for (const link of links) {
+            if (this.lightning) {
+                this.lightning.drawLightning(link.origin, link.target.position, dotHex);
+            }
+            // Delay per strike to show the "chain" progression
+            await new Promise(resolve => this.scheduleOnce(resolve, 0.05));
+        }
+
+        // PHASE 3: DESTROY & CLEANUP
         this.scheduleOnce(() => {
-            // PHASE 2: DRAW LINES with Dot Color
-            matches.forEach(m => {
-                if (this.lightning) this.lightning.drawLightning(lotus.position, m.position, dotHex);
+            if (this.lightning) this.lightning.clearWeb();
+            
+            links.forEach(link => {
+                const node = link.target;
+                const p = node.getComponent(GridPiece)!;
+                this.grid[p.row][p.col] = null;
+                this.playPopAndBurst(node, colorId);
             });
 
-            // PHASE 3: DESTROY
-            this.scheduleOnce(() => {
-                if (this.lightning) this.lightning.clearWeb();
-                
-                matches.forEach(m => {
-                    const p = m.getComponent(GridPiece)!;
-                    this.grid[p.row][p.col] = null;
-                    this.playPopAndBurst(m, colorId);
-                });
+            this.grid[startR][startC] = null;
+            this.playPopAndBurst(lotus, colorId);
 
-                this.grid[startR][startC] = null;
-                this.playPopAndBurst(lotus, colorId);
+            GameManager.instance.registerDotsCollected(colorId, links.length + 1);
+            GameManager.instance.decrementMoves();
 
-                GameManager.instance.registerDotsCollected(colorId, matches.length + 1);
-                GameManager.instance.decrementMoves();
+            // Wait for pop animations before falling
+            this.scheduleOnce(() => this.triggerUnifiedFall(), 0.5); 
 
-                this.scheduleOnce(() => this.triggerUnifiedFall(), 1.03); 
-
-            }, 0.5); 
-        }, 1.0); 
+        }, 0.5); 
     }
 
     private playPopAndBurst(node: Node, colorId: string) {
@@ -138,7 +147,7 @@ export class GridController extends Component {
 
             const anim = burst.getComponent(Animation) || burst.getComponentInChildren(Animation);
             if (anim) anim.play();
-            this.scheduleOnce(() => { if(isValid(burst)) burst.destroy(); }, 1.03);
+            this.scheduleOnce(() => { if(isValid(burst)) burst.destroy(); }, 1.0);
         }
 
         tween(node)
