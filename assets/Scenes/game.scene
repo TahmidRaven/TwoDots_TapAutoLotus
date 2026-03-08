@@ -3262,10 +3262,10 @@
     "lightning": {
       "__id__": 52
     },
-    "rows": 13,
-    "cols": 10,
+    "rows": 10,
+    "cols": 8,
     "cellSize": 55,
-    "padding": 35,
+    "padding": 69,
     "gridScale": 1,
     "_id": "39Obvj3WRCq620B8bWvDfj"
   },
