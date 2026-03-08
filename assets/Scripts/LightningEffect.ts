@@ -27,46 +27,31 @@ export class LightningEffect extends Component {
         if (!this._isDrawing || this._activeBolts.length === 0) return;
         this.graphics.clear();
         
-        // We draw in layers: first all the glows, then all the bright cores
-        // This ensures the glow doesn't "overlap" and hide the sharp centers
-        
-        // LAYER 1: OUTER GLOW
+        // LAYER 1: OUTER COLORED GLOW
         for (const bolt of this._activeBolts) {
-            this.renderGlowLine(bolt.start, bolt.end, bolt.colorHex, 24, 50); // Thick, faint
+            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 20, 100); 
         }
 
-        // LAYER 2: INNER GLOW
+        // LAYER 2: SUBTLE WHITE GLOW (Edges/Highlights)
         for (const bolt of this._activeBolts) {
-            this.renderGlowLine(bolt.start, bolt.end, bolt.colorHex, 16, 150); // Medium
+            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 12, 80); 
         }
 
-        // LAYER 3: CORE
+        // LAYER 3: COLORED CORE
         for (const bolt of this._activeBolts) {
-            this.renderCleanLine(bolt.start, bolt.end, "#FFFFFF"); // Pure white center
+            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 6, 255); 
         }
     }
 
-    private renderGlowLine(start: Vec3, end: Vec3, colorHex: string, width: number, alpha: number) {
-        const glowColor = new Color().fromHEX(colorHex);
-        glowColor.a = alpha; // Set the transparency for the glow layer
+    private renderLine(start: Vec3, end: Vec3, colorHex: string, width: number, alpha: number) {
+        const color = new Color().fromHEX(colorHex);
+        color.a = alpha;
 
         this.graphics.lineJoin = Graphics.LineJoin.ROUND;
         this.graphics.lineCap = Graphics.LineCap.ROUND;
-        this.graphics.strokeColor = glowColor;
+        this.graphics.strokeColor = color;
         this.graphics.lineWidth = width;
         
-        this.graphics.moveTo(start.x, start.y);
-        this.graphics.lineTo(end.x, end.y);
-        this.graphics.stroke();
-    }
-
-    private renderCleanLine(start: Vec3, end: Vec3, colorHex: string) {
-        const baseColor = new Color().fromHEX(colorHex);
-        this.graphics.lineJoin = Graphics.LineJoin.ROUND;
-        this.graphics.lineCap = Graphics.LineCap.ROUND;
-        
-        this.graphics.strokeColor = baseColor;
-        this.graphics.lineWidth = 6; // Thinner core for a sharp look
         this.graphics.moveTo(start.x, start.y);
         this.graphics.lineTo(end.x, end.y);
         this.graphics.stroke();
