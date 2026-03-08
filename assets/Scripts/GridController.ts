@@ -10,6 +10,7 @@ const { ccclass, property } = _decorator;
 export class GridController extends Component {
     @property([Prefab]) dotPrefabs: Prefab[] = [];
     @property(Prefab) lotusPrefab: Prefab = null!;
+    @property(Prefab) whiteDotPrefab: Prefab = null!; 
     @property(Prefab) burstAnimPrefab: Prefab = null!; 
     @property(LightningEffect) lightning: LightningEffect = null!;
 
@@ -22,10 +23,6 @@ export class GridController extends Component {
     private grid: (Node | null)[][] = [];
     private isProcessing: boolean = false;
 
-    private get spacing(): number {
-        return this.cellSize + this.padding;
-    }
-
     private readonly colorMap: { [key: string]: string } = {
         "green": "#79B496",
         "darkBlue": "#4E6681",
@@ -34,6 +31,10 @@ export class GridController extends Component {
         "purple": "#8F6B9B",
         "blue": "#7693C0"
     };
+
+    private get spacing(): number {
+        return this.cellSize + this.padding;
+    }
 
     onLoad() {
         this.node.on(Node.EventType.TOUCH_END, this.onGridTouch, this);
@@ -73,7 +74,6 @@ export class GridController extends Component {
         const piece = targetNode.getComponent(GridPiece);
         if (!piece) return;
 
-        // Using the new chain search
         const links = MatchFinder.getChainMatches(r, c, piece.colorId, this.grid, this.rows, this.cols);
         
         if (links.length > 0) {
@@ -81,7 +81,6 @@ export class GridController extends Component {
         }
     }
 
-    // Changed to async to support the "traveling" delay
     private async executeLotusSequence(colorId: string, startR: number, startC: number, links: MatchLink[]) {
         this.isProcessing = true;
         const startNode = this.grid[startR][startC]!;
@@ -96,16 +95,40 @@ export class GridController extends Component {
         this.grid[startR][startC] = lotus;
         lotus.getComponent(Animation)?.play();
 
-        // Wait slightly for the lotus to bloom
         await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
 
-        // PHASE 2: DRAW SEQUENTIAL LINES
+        // PHASE 2: DRAW SEQUENTIAL LINES & EFFECTS
         for (const link of links) {
             if (this.lightning) {
                 this.lightning.drawLightning(link.origin, link.target.position, dotHex);
             }
-            // Delay per strike to show the "chain" progression
-            await new Promise(resolve => this.scheduleOnce(resolve, 0.05));
+
+            // --- TRANSPARENT BACKGROUND GLOW ONLY ---
+            if (this.whiteDotPrefab) {
+                const bgDot = instantiate(this.whiteDotPrefab);
+                bgDot.parent = this.node;
+                bgDot.setPosition(link.target.position);
+                bgDot.setSiblingIndex(0); // Behind the dots
+
+                const sprite = bgDot.getComponent(Sprite) || bgDot.getComponentInChildren(Sprite);
+                if (sprite) {
+                    const color = new Color().fromHEX(dotHex);
+                    color.a = 120; // Transparency (0-255)
+                    sprite.color = color;
+                }
+
+                // Grow 40% larger than the grid scale for a nice halo effect
+                const targetScale = v3(this.gridScale * 1.65, this.gridScale * 1.65, 1);
+
+                tween(bgDot)
+                    .to(0.3, { scale: targetScale }, { easing: 'sineOut' })
+                    .to(0.2, { scale: v3(0, 0, 0) }, { easing: 'sineIn' })
+                    .call(() => { if (isValid(bgDot)) bgDot.destroy(); })
+                    .start();
+            }
+
+            // Chain travel speed
+            await new Promise(resolve => this.scheduleOnce(resolve, 0.08));
         }
 
         // PHASE 3: DESTROY & CLEANUP
@@ -125,10 +148,8 @@ export class GridController extends Component {
             GameManager.instance.registerDotsCollected(colorId, links.length + 1);
             GameManager.instance.decrementMoves();
 
-            // Wait for pop animations before falling
             this.scheduleOnce(() => this.triggerUnifiedFall(), 0.5); 
-
-        }, 0.5); 
+        }, 0.6); 
     }
 
     private playPopAndBurst(node: Node, colorId: string) {
@@ -151,7 +172,7 @@ export class GridController extends Component {
         }
 
         tween(node)
-            .to(0.1, { scale: v3(this.gridScale * 1.2, this.gridScale * 1.2, 1) })
+            .to(0.1, { scale: v3(this.gridScale * 1.25, this.gridScale * 1.25, 1) })
             .to(0.15, { scale: v3(0, 0, 0) })
             .call(() => { if (isValid(node)) node.destroy(); })
             .start();

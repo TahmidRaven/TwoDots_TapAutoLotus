@@ -56,4 +56,4 @@ export class LightningEffect extends Component {
         this.graphics.lineTo(end.x, end.y);
         this.graphics.stroke();
     }
-}
+}   
