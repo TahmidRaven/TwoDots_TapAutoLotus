@@ -87,13 +87,28 @@ export class GridController extends Component {
         const lotusPos = v3(startNode.position);
         const dotHex = this.colorMap[colorId] || "#FFFFFF";
 
-        // PHASE 1: LOTUS SPAWN
-        startNode.destroy();
-        const lotus = instantiate(this.lotusPrefab);
-        lotus.parent = this.node;
-        lotus.setPosition(lotusPos);
-        this.grid[startR][startC] = lotus;
-        lotus.getComponent(Animation)?.play();
+    // PHASE 1: LOTUS SPAWN
+    startNode.destroy();
+    const lotus = instantiate(this.lotusPrefab);
+    lotus.parent = this.node;
+    lotus.setPosition(lotusPos);
+    this.grid[startR][startC] = lotus;
+
+    // Find the LotusAnim child and play the specific color animation
+    const animNode = lotus.getChildByName("LotusAnim");
+    if (animNode) {
+        const anim = animNode.getComponent(Animation);
+        if (anim) {
+            // Capitalize the first letter to match your file naming (e.g., green -> Green)
+            const formattedColor = colorId.charAt(0).toUpperCase() + colorId.slice(1);
+            const clipName = `LotusAnim_${formattedColor}`;
+            
+            // Play the specific clip
+            anim.play(clipName);
+        }
+    }
+
+await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
 
         await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
 
