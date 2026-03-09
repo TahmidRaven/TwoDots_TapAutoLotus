@@ -1,5 +1,6 @@
 import { _decorator, Component, Label, Node } from 'cc';
 import { GridController } from './GridController';
+import { VictoryScreen } from './VictoryScreen'; // Import your custom component
 
 const { ccclass, property } = _decorator;
 
@@ -13,7 +14,8 @@ export class GameManager extends Component {
     @property(Label) darkBlueCounter: Label = null!;
     @property(Label) redCounter: Label = null!;
 
-    @property(Node) victoryScreen: Node = null!;
+    // Changed from Node to VictoryScreen to access custom methods
+    @property(VictoryScreen) victoryScreen: VictoryScreen = null!;
 
     private _moves: number = 100;
     private _collected = { green: 0, darkBlue: 0, red: 0 };
@@ -24,7 +26,7 @@ export class GameManager extends Component {
 
     onLoad() {
         GameManager.instance = this;
-        if (this.victoryScreen) this.victoryScreen.active = false;
+        // The VictoryScreen component handles its own initial hiding in its onLoad
     }
 
     start() {
@@ -67,9 +69,13 @@ export class GameManager extends Component {
         if (this._isGameOver) return;
         this._isGameOver = true;
         
+        if (this.victoryScreen) {
+            // Triggers the animation, text update, and visibility
+            this.victoryScreen.show(win); 
+        }
+
         if (win) {
             console.log("WIN!");
-            if (this.victoryScreen) this.victoryScreen.active = true;
         } else {
             console.log("LOSE!");
         }
