@@ -120,8 +120,9 @@ export class GridController extends Component {
             }
         }
 
-        await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
-        await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
+        // Speed up the initial blossoming wait times
+        await new Promise(resolve => this.scheduleOnce(resolve, 0.3));
+        await new Promise(resolve => this.scheduleOnce(resolve, 0.2));
 
         for (const link of links) {
             if (this.lightning) {
@@ -137,45 +138,55 @@ export class GridController extends Component {
                 const sprite = bgDot.getComponent(Sprite) || bgDot.getComponentInChildren(Sprite);
                 if (sprite) {
                     const color = new Color().fromHEX(dotHex);
-                    color.a = 235; // Start at 235 opacity
+                    color.a = 235;
                     sprite.color = color;
                 }
 
                 const peakScale = this.gridScale * 2.2; 
                 const originalScale = v3(this.gridScale, this.gridScale, 1);
 
-                // Sequential Ripple: Expand then Shrink back to 70 opacity
                 tween(bgDot)
-                    .to(0.15, { scale: v3(peakScale, peakScale, 1) }, { easing: 'sineOut' })
+                    .to(0.1, { scale: v3(peakScale, peakScale, 1) }, { easing: 'sineOut' })
                     .parallel(
-                        tween().to(0.25, { scale: originalScale }, { easing: 'sineIn' }),
-                        tween(sprite).to(0.25, { color: new Color(sprite!.color.r, sprite!.color.g, sprite!.color.b, 70) }) // End at 70 opacity
+                        tween().to(0.2, { scale: originalScale }, { easing: 'sineIn' }),
+                        tween(sprite).to(0.2, { color: new Color(sprite!.color.r, sprite!.color.g, sprite!.color.b, 70) })
                     )
                     .call(() => { if (isValid(bgDot)) bgDot.destroy(); })
                     .start();
             }
 
-            await new Promise(resolve => this.scheduleOnce(resolve, 0.08));
+            // Sped up from 0.08 to 0.04 for snappier connecting feel
+            await new Promise(resolve => this.scheduleOnce(resolve, 0.04));
         }
 
+        // Wait slightly for the last lightning bolt to be seen
         this.scheduleOnce(() => {
             if (this.lightning) this.lightning.clearWeb();
             
-            links.forEach(link => {
-                const node = link.target;
-                const p = node.getComponent(GridPiece)!;
-                this.grid[p.row][p.col] = null;
-                this.playPopAndBurst(node, colorId);
-            });
+            // --- Rotation triggered AFTER animation/connecting finishes ---
+            tween(lotus)
+                .to(0.4, { angle: 360 }, { easing: 'quartOut' })
+                .call(() => {
+                    // This block executes after the rotation completes
+                    links.forEach(link => {
+                        const node = link.target;
+                        const p = node.getComponent(GridPiece)!;
+                        this.grid[p.row][p.col] = null;
+                        this.playPopAndBurst(node, colorId);
+                    });
 
-            this.grid[startR][startC] = null;
-            this.playPopAndBurst(lotus, colorId);
+                    this.grid[startR][startC] = null;
+                    this.playPopAndBurst(lotus, colorId);
 
-            GameManager.instance.registerDotsCollected(colorId, links.length + 1);
-            GameManager.instance.decrementMoves();
+                    GameManager.instance.registerDotsCollected(colorId, links.length + 1);
+                    GameManager.instance.decrementMoves();
 
-            this.scheduleOnce(() => this.triggerUnifiedFall(), 0.5);
-        }, 0.6); 
+                    // Faster transition to pieces falling
+                    this.scheduleOnce(() => this.triggerUnifiedFall(), 0.5);
+                })
+                .start();
+
+        }, 0.2); 
     }
 
     private playPopAndBurst(node: Node, colorId: string) {
