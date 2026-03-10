@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, v3, Vec3 } from 'cc';
+import { _decorator, Component, Label, Node, v3, Vec3, CCFloat } from 'cc';
 import { GridController } from './GridController';
 import { VictoryScreen } from './VictoryScreen';
 import { TutorialHand } from './TutorialHand';
@@ -15,14 +15,20 @@ export class GameManager extends Component {
     @property(Label) darkBlueCounter: Label = null!;
     @property(Label) redCounter: Label = null!;
     @property(VictoryScreen) victoryScreen: VictoryScreen = null!;
-    
     @property(TutorialHand) tutorialHand: TutorialHand = null!;
+
+    @property({ 
+        type: CCFloat, 
+        tooltip: "Seconds of inactivity before a hint appears" 
+    })
+    public hintDelay: number = 6.0; 
 
     private _moves: number = 100;
     private _collected = { green: 0, darkBlue: 0, red: 0 };
     private _goals = { green: 10, darkBlue: 10, red: 10 };
     private _isGameOver: boolean = false;
     private _gameStarted: boolean = false;
+    private _idleTimer: number = 0;
 
     public get isGameOver() { return this._isGameOver; }
     public get hasGameStarted() { return this._gameStarted; }
@@ -31,41 +37,53 @@ export class GameManager extends Component {
         GameManager.instance = this;
     }
 
-
-start() {
-    this.updateUI();
-
-    if (this.gridController) {
-        // Fill grid first
-        this.gridController.initGrid(() => {
-            // Board is now full and dots have landed
-            if (this.tutorialHand) {
-                const hintPos = this.gridController.getHintPosition();
-                
-                if (hintPos) {
-                    // Apply the Y offset here
-                    const adjustedPos = v3(hintPos.x, hintPos.y - 153, hintPos.z);
-                    this.tutorialHand.showAt(adjustedPos); 
-                } else {
-                    // Fallback to center with offset if desired
-                    this.tutorialHand.showAt(v3(0, -153, 0));
-                }
-            }
-        });
+    start() {
+        this.updateUI();
+        if (this.gridController) {
+            this.gridController.initGrid(() => {
+                this.showHint(); 
+            });
+        }
     }
-}
 
-    public startGame() {
-        if (this._gameStarted) return;
-        this._gameStarted = true;
+    update(dt: number) {
+        if (!this._gameStarted || this._isGameOver) return;
 
+        this._idleTimer += dt;
+
+        if (this._idleTimer >= this.hintDelay) {
+            this.showHint();
+            this._idleTimer = 0; 
+        }
+    }
+
+    private showHint() {
+        if (this.gridController && this.tutorialHand) {
+            const hintPos = this.gridController.getHintPosition();
+            if (hintPos) {
+                const adjustedPos = v3(hintPos.x, hintPos.y - 153, hintPos.z);
+                this.tutorialHand.showAt(adjustedPos); 
+            }
+        }
+    }
+
+    // Changed to public so GridController can call it
+    public resetIdleTimer() {
+        this._idleTimer = 0;
         if (this.tutorialHand) {
             this.tutorialHand.hide();
         }
     }
 
+    public startGame() {
+        if (this._gameStarted) return;
+        this._gameStarted = true;
+        this.resetIdleTimer();
+    }
+
     public decrementMoves() {
         this._moves--;
+        this.resetIdleTimer();
         this.updateUI();
         if (this._moves <= 0) this.endGame(false);
     }
@@ -98,7 +116,6 @@ start() {
     private endGame(win: boolean) {
         if (this._isGameOver) return;
         this._isGameOver = true;
-        
         if (this.victoryScreen) {
             this.victoryScreen.show(win);
         }

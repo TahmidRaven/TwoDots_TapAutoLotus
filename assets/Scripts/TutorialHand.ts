@@ -1,8 +1,15 @@
-import { _decorator, Component, Node, Vec3, v3, tween, UITransform } from 'cc';
+import { _decorator, Component, Node, Vec3, v3, tween, UITransform, CCFloat } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('TutorialHand')
 export class TutorialHand extends Component {
+    
+    @property({ type: CCFloat, tooltip: "How much larger the hand gets during pulse" })
+    public pulseMultiplier: number = 1.2;
+
+    @property({ type: CCFloat, tooltip: "Time for one pulse cycle" })
+    public pulseDuration: number = 0.5;
+
     private _baseScale: Vec3 = v3(1, 1, 1);
     private _isShowing: boolean = false;
 
@@ -12,38 +19,25 @@ export class TutorialHand extends Component {
         this.node.setScale(v3(0, 0, 0));
     }
 
-
-    public showAtWorld(worldPos: Vec3) {
-        if (!this.node.parent) return;
+    public showAt(pos: Vec3) {
+        this.node.active = true;
+        this._isShowing = true;
+        this.node.setPosition(pos);
         
-        const parentUIT = this.node.parent.getComponent(UITransform);
-        if (parentUIT) {
-            const localPos = parentUIT.convertToNodeSpaceAR(worldPos);
-            this.showAt(localPos);
-        }
+        tween(this.node).stop();
+        this.node.setScale(v3(0, 0, 0)); 
+
+        const targetPulse = v3(this._baseScale.x * this.pulseMultiplier, this._baseScale.y * this.pulseMultiplier, 1);
+
+        tween(this.node)
+            .to(0.3, { scale: this._baseScale }, { easing: 'backOut' })
+            .repeatForever(
+                tween(this.node)
+                    .to(this.pulseDuration, { scale: targetPulse }, { easing: 'quadInOut' })
+                    .to(this.pulseDuration, { scale: this._baseScale }, { easing: 'quadInOut' })
+            )
+            .start();
     }
-
-public showAt(pos: Vec3) {
-    // If we are already showing this exact position, don't restart the animation
-    if (this._isShowing && this.node.position.equals(pos, 0.1)) return;
-
-    this.node.active = true;
-    this._isShowing = true;
-    this.node.setPosition(pos);
-    
-    tween(this.node).stop();
-    this.node.setScale(v3(0, 0, 0)); // Start from zero only once
-
-    tween(this.node)
-        .to(0.3, { scale: this._baseScale }, { easing: 'backOut' })
-        // Smooth, non-jittery pulse
-        .repeatForever(
-            tween(this.node)
-                .to(0.5, { scale: v3(this._baseScale.x * 1.2, this._baseScale.y * 1.2, 1) }, { easing: 'quadInOut' })
-                .to(0.5, { scale: this._baseScale }, { easing: 'quadInOut' })
-        )
-        .start();
-}
 
     public hide() {
         this._isShowing = false;

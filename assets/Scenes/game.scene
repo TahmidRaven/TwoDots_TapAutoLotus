@@ -3690,6 +3690,7 @@
     "tutorialHand": {
       "__id__": 162
     },
+    "hintDelay": 6,
     "_id": "f0iK4l2qFDvajx3s1ctbGg"
   },
   {
@@ -4418,6 +4419,8 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "pulseMultiplier": 1.2,
+    "pulseDuration": 0.5,
     "_id": "32VnIiXVJICaEuSqH9QCPj"
   },
   {
@@ -4457,7 +4460,7 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": -0.425,
+      "x": 0.425,
       "y": 0.425,
       "z": 0.85
     },
@@ -4488,7 +4491,7 @@
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.1,
+      "x": 0,
       "y": 1
     },
     "_id": "46eSKrI6dGXa+Rx0DHntcq"

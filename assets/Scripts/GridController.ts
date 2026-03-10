@@ -62,27 +62,30 @@ export class GridController extends Component {
         }
     }
 
-private onGridTouch(event: any) {
+    private onGridTouch(event: any) {
+        // Start the game if first touch
+        if (!GameManager.instance.hasGameStarted) {
+            GameManager.instance.startGame();
+        }
 
-    if (!GameManager.instance.hasGameStarted) {
-        GameManager.instance.startGame();
+        // Immediately reset timer and hide hand on any grid tap
+        GameManager.instance.resetIdleTimer();
+
+        if (this.isProcessing || (GameManager.instance && GameManager.instance.isGameOver)) return;
+        
+        const uiTransform = this.node.getComponent(UITransform)!;
+        const localPos = uiTransform.convertToNodeSpaceAR(v3(event.getUILocation().x, event.getUILocation().y, 0));
+        
+        const totalW = (this.cols - 1) * this.spacing;
+        const totalH = (this.rows - 1) * this.spacing;
+        
+        const c = Math.round((localPos.x + (totalW / 2)) / this.spacing);
+        const r = Math.round(((totalH / 2) - localPos.y) / this.spacing);
+
+        if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
+            this.handleCellTap(r, c);
+        }
     }
-
-    if (this.isProcessing || (GameManager.instance && GameManager.instance.isGameOver)) return;
-    
-    const uiTransform = this.node.getComponent(UITransform)!;
-    const localPos = uiTransform.convertToNodeSpaceAR(v3(event.getUILocation().x, event.getUILocation().y, 0));
-    
-    const totalW = (this.cols - 1) * this.spacing;
-    const totalH = (this.rows - 1) * this.spacing;
-    
-    const c = Math.round((localPos.x + (totalW / 2)) / this.spacing);
-    const r = Math.round(((totalH / 2) - localPos.y) / this.spacing);
-
-    if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
-        this.handleCellTap(r, c);
-    }
-}
 
     private handleCellTap(r: number, c: number) {
         const targetNode = this.grid[r][c];
