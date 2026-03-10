@@ -29,17 +29,17 @@ export class LightningEffect extends Component {
         
         // LAYER 1: OUTER COLORED GLOW
         for (const bolt of this._activeBolts) {
-            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 20, 100); 
+            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 25, 150); 
         }
 
         // LAYER 2: SUBTLE WHITE GLOW (Edges/Highlights)
         for (const bolt of this._activeBolts) {
-            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 20, 80); 
+            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 25, 80); 
         }
 
         // LAYER 3: COLORED CORE
         for (const bolt of this._activeBolts) {
-            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 16, 255); 
+            this.renderLine(bolt.start, bolt.end, bolt.colorHex, 20, 255); 
         }
     }
 

@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 165
+      "__id__": 169
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 166
+      "__id__": 170
     },
     "_id": "c9244e99-a4bd-4e29-b8dd-a894bf98eb83"
   },
@@ -90,18 +90,21 @@
       },
       {
         "__id__": 143
+      },
+      {
+        "__id__": 163
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 162
+        "__id__": 166
       },
       {
-        "__id__": 163
+        "__id__": 167
       },
       {
-        "__id__": 164
+        "__id__": 168
       }
     ],
     "_prefab": null,
@@ -3684,6 +3687,9 @@
     "victoryScreen": {
       "__id__": 142
     },
+    "tutorialHand": {
+      "__id__": 162
+    },
     "_id": "f0iK4l2qFDvajx3s1ctbGg"
   },
   {
@@ -4403,6 +4409,130 @@
     "_id": "9chChPGPFHjIzZdg6o0qVM"
   },
   {
+    "__type__": "e8b00ydfP9Cm5fyNDmPkqI9",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 163
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "_id": "32VnIiXVJICaEuSqH9QCPj"
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "Hand",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 164
+      },
+      {
+        "__id__": 165
+      },
+      {
+        "__id__": 162
+      }
+    ],
+    "_prefab": null,
+    "_lpos": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": -153,
+      "z": 0
+    },
+    "_lrot": {
+      "__type__": "cc.Quat",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "w": 1
+    },
+    "_lscale": {
+      "__type__": "cc.Vec3",
+      "x": -0.425,
+      "y": 0.425,
+      "z": 0.85
+    },
+    "_mobility": 0,
+    "_layer": 33554432,
+    "_euler": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_id": "64iRkZj7ZIxZHlWNoyYSMI"
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 163
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 512,
+      "height": 941
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.1,
+      "y": 1
+    },
+    "_id": "46eSKrI6dGXa+Rx0DHntcq"
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 163
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "_customMaterial": null,
+    "_srcBlendFactor": 2,
+    "_dstBlendFactor": 4,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_spriteFrame": {
+      "__uuid__": "fe0ea664-fa48-4ab6-bdd4-bed379441154@f9941",
+      "__expectedType__": "cc.SpriteFrame"
+    },
+    "_type": 0,
+    "_fillType": 0,
+    "_sizeMode": 1,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_useGrayscale": false,
+    "_atlas": null,
+    "_id": "393t+NCS9AqLBXvsciNfe3"
+  },
+  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
@@ -4492,28 +4622,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 167
-    },
-    "shadows": {
-      "__id__": 168
-    },
-    "_skybox": {
-      "__id__": 169
-    },
-    "fog": {
-      "__id__": 170
-    },
-    "octree": {
       "__id__": 171
     },
-    "skin": {
+    "shadows": {
       "__id__": 172
     },
-    "lightProbeInfo": {
+    "_skybox": {
       "__id__": 173
     },
-    "postSettings": {
+    "fog": {
       "__id__": 174
+    },
+    "octree": {
+      "__id__": 175
+    },
+    "skin": {
+      "__id__": 176
+    },
+    "lightProbeInfo": {
+      "__id__": 177
+    },
+    "postSettings": {
+      "__id__": 178
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false

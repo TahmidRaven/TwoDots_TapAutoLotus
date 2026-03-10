@@ -1,6 +1,7 @@
-import { _decorator, Component, Label, Node } from 'cc';
+import { _decorator, Component, Label, Node, v3, Vec3 } from 'cc';
 import { GridController } from './GridController';
-import { VictoryScreen } from './VictoryScreen'; // Import your custom component
+import { VictoryScreen } from './VictoryScreen';
+import { TutorialHand } from './TutorialHand';
 
 const { ccclass, property } = _decorator;
 
@@ -13,25 +14,54 @@ export class GameManager extends Component {
     @property(Label) greenCounter: Label = null!;
     @property(Label) darkBlueCounter: Label = null!;
     @property(Label) redCounter: Label = null!;
-
-    // Changed from Node to VictoryScreen to access custom methods
     @property(VictoryScreen) victoryScreen: VictoryScreen = null!;
+    
+    @property(TutorialHand) tutorialHand: TutorialHand = null!;
 
     private _moves: number = 100;
     private _collected = { green: 0, darkBlue: 0, red: 0 };
     private _goals = { green: 10, darkBlue: 10, red: 10 };
     private _isGameOver: boolean = false;
+    private _gameStarted: boolean = false;
 
     public get isGameOver() { return this._isGameOver; }
+    public get hasGameStarted() { return this._gameStarted; }
 
     onLoad() {
         GameManager.instance = this;
-        // The VictoryScreen component handles its own initial hiding in its onLoad
     }
 
-    start() {
-        this.updateUI();
-        if (this.gridController) this.gridController.initGrid();
+
+start() {
+    this.updateUI();
+
+    if (this.gridController) {
+        // Fill grid first
+        this.gridController.initGrid(() => {
+            // Board is now full and dots have landed
+            if (this.tutorialHand) {
+                const hintPos = this.gridController.getHintPosition();
+                
+                if (hintPos) {
+                    // Apply the Y offset here
+                    const adjustedPos = v3(hintPos.x, hintPos.y - 153, hintPos.z);
+                    this.tutorialHand.showAt(adjustedPos); 
+                } else {
+                    // Fallback to center with offset if desired
+                    this.tutorialHand.showAt(v3(0, -153, 0));
+                }
+            }
+        });
+    }
+}
+
+    public startGame() {
+        if (this._gameStarted) return;
+        this._gameStarted = true;
+
+        if (this.tutorialHand) {
+            this.tutorialHand.hide();
+        }
     }
 
     public decrementMoves() {
@@ -70,14 +100,7 @@ export class GameManager extends Component {
         this._isGameOver = true;
         
         if (this.victoryScreen) {
-            // Triggers the animation, text update, and visibility
-            this.victoryScreen.show(win); 
-        }
-
-        if (win) {
-            console.log("WIN!");
-        } else {
-            console.log("LOSE!");
+            this.victoryScreen.show(win);
         }
     }
 }

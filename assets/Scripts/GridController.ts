@@ -10,18 +10,20 @@ const { ccclass, property } = _decorator;
 export class GridController extends Component {
     @property([Prefab]) dotPrefabs: Prefab[] = [];
     @property(Prefab) lotusPrefab: Prefab = null!;
-    @property(Prefab) whiteDotPrefab: Prefab = null!; 
-    @property(Prefab) burstAnimPrefab: Prefab = null!; 
+    @property(Prefab) whiteDotPrefab: Prefab = null!;
+    @property(Prefab) burstAnimPrefab: Prefab = null!;
     @property(LightningEffect) lightning: LightningEffect = null!;
 
     @property(CCInteger) rows: number = 9;
     @property(CCInteger) cols: number = 9;
-    @property(CCFloat) cellSize: number = 55; 
-    @property(CCFloat) padding: number = 10; 
+    @property(CCFloat) cellSize: number = 55;
+    @property(CCFloat) padding: number = 10;
     @property(CCFloat) gridScale: number = 1.0;
 
     private grid: (Node | null)[][] = [];
     private isProcessing: boolean = false;
+    private _isInitialLoad: boolean = true;
+    private _onInitialFillComplete: (() => void) | null = null;
 
     private readonly colorMap: { [key: string]: string } = {
         "green": "#79B496",
@@ -40,9 +42,17 @@ export class GridController extends Component {
         this.node.on(Node.EventType.TOUCH_END, this.onGridTouch, this);
     }
 
-    public initGrid() {
+    public initGrid(onComplete?: () => void) {
+        if (onComplete) {
+            this._onInitialFillComplete = onComplete;
+        }
         this.generateGrid();
         this.triggerUnifiedFall();
+    }
+
+    public getHintPosition(): Vec3 | null {
+        const hint = MatchFinder.findFirstValidMatch(this.grid, this.rows, this.cols);
+        return hint ? hint.pos : null;
     }
 
     private generateGrid() {
@@ -52,21 +62,27 @@ export class GridController extends Component {
         }
     }
 
-    private onGridTouch(event: any) {
-        if (this.isProcessing || (GameManager.instance && GameManager.instance.isGameOver)) return;
-        const uiTransform = this.node.getComponent(UITransform)!;
-        const localPos = uiTransform.convertToNodeSpaceAR(v3(event.getUILocation().x, event.getUILocation().y, 0));
-        
-        const totalW = (this.cols - 1) * this.spacing;
-        const totalH = (this.rows - 1) * this.spacing;
-        
-        const c = Math.round((localPos.x + (totalW / 2)) / this.spacing);
-        const r = Math.round(((totalH / 2) - localPos.y) / this.spacing);
+private onGridTouch(event: any) {
 
-        if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
-            this.handleCellTap(r, c);
-        }
+    if (!GameManager.instance.hasGameStarted) {
+        GameManager.instance.startGame();
     }
+
+    if (this.isProcessing || (GameManager.instance && GameManager.instance.isGameOver)) return;
+    
+    const uiTransform = this.node.getComponent(UITransform)!;
+    const localPos = uiTransform.convertToNodeSpaceAR(v3(event.getUILocation().x, event.getUILocation().y, 0));
+    
+    const totalW = (this.cols - 1) * this.spacing;
+    const totalH = (this.rows - 1) * this.spacing;
+    
+    const c = Math.round((localPos.x + (totalW / 2)) / this.spacing);
+    const r = Math.round(((totalH / 2) - localPos.y) / this.spacing);
+
+    if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
+        this.handleCellTap(r, c);
+    }
+}
 
     private handleCellTap(r: number, c: number) {
         const targetNode = this.grid[r][c];
@@ -87,52 +103,43 @@ export class GridController extends Component {
         const lotusPos = v3(startNode.position);
         const dotHex = this.colorMap[colorId] || "#FFFFFF";
 
-    // PHASE 1: LOTUS SPAWN
-    startNode.destroy();
-    const lotus = instantiate(this.lotusPrefab);
-    lotus.parent = this.node;
-    lotus.setPosition(lotusPos);
-    this.grid[startR][startC] = lotus;
+        startNode.destroy();
+        const lotus = instantiate(this.lotusPrefab);
+        lotus.parent = this.node;
+        lotus.setPosition(lotusPos);
+        this.grid[startR][startC] = lotus;
 
-    // Find the LotusAnim child and play the specific color animation
-    const animNode = lotus.getChildByName("LotusAnim");
-    if (animNode) {
-        const anim = animNode.getComponent(Animation);
-        if (anim) {
-            // Capitalize the first letter to match your file naming (e.g., green -> Green)
-            const formattedColor = colorId.charAt(0).toUpperCase() + colorId.slice(1);
-            const clipName = `LotusAnim_${formattedColor}`;
-            
-            // Play the specific clip
-            anim.play(clipName);
+        const animNode = lotus.getChildByName("LotusAnim");
+        if (animNode) {
+            const anim = animNode.getComponent(Animation);
+            if (anim) {
+                const formattedColor = colorId.charAt(0).toUpperCase() + colorId.slice(1);
+                const clipName = `LotusAnim_${formattedColor}`;
+                anim.play(clipName);
+            }
         }
-    }
-
-await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
 
         await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
+        await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
 
-        // PHASE 2: DRAW SEQUENTIAL LINES & EFFECTS
         for (const link of links) {
             if (this.lightning) {
                 this.lightning.drawLightning(link.origin, link.target.position, dotHex);
             }
 
-            // --- TRANSPARENT BACKGROUND GLOW ONLY ---
             if (this.whiteDotPrefab) {
                 const bgDot = instantiate(this.whiteDotPrefab);
                 bgDot.parent = this.node;
                 bgDot.setPosition(link.target.position);
-                bgDot.setSiblingIndex(0); // Behind the dots
+                bgDot.setSiblingIndex(0);
 
                 const sprite = bgDot.getComponent(Sprite) || bgDot.getComponentInChildren(Sprite);
                 if (sprite) {
                     const color = new Color().fromHEX(dotHex);
-                    color.a = 120; // Transparency (0-255)
+                    color.a = 120;
                     sprite.color = color;
                 }
 
-                // Grow 40% larger than the grid scale for a nice halo effect
                 const targetScale = v3(this.gridScale * 1.65, this.gridScale * 1.65, 1);
 
                 tween(bgDot)
@@ -142,11 +149,9 @@ await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
                     .start();
             }
 
-            // Chain travel speed
             await new Promise(resolve => this.scheduleOnce(resolve, 0.08));
         }
 
-        // PHASE 3: DESTROY & CLEANUP
         this.scheduleOnce(() => {
             if (this.lightning) this.lightning.clearWeb();
             
@@ -163,7 +168,7 @@ await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
             GameManager.instance.registerDotsCollected(colorId, links.length + 1);
             GameManager.instance.decrementMoves();
 
-            this.scheduleOnce(() => this.triggerUnifiedFall(), 0.5); 
+            this.scheduleOnce(() => this.triggerUnifiedFall(), 0.5);
         }, 0.6); 
     }
 
@@ -243,6 +248,15 @@ await new Promise(resolve => this.scheduleOnce(resolve, 0.5));
                 tween(dot).to(duration, { position: v3(startX, targetY, 0) }, { easing: 'bounceOut' }).start();
             }
         }
-        this.scheduleOnce(() => { this.isProcessing = false; }, longestAnimation);
+        
+        this.scheduleOnce(() => { 
+            this.isProcessing = false; 
+
+            if (this._isInitialLoad && this._onInitialFillComplete) {
+                this._onInitialFillComplete();
+                this._onInitialFillComplete = null;
+                this._isInitialLoad = false;
+            }
+        }, longestAnimation);
     }
 }
