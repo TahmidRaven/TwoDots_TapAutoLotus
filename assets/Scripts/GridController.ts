@@ -3,6 +3,7 @@ import { GridPiece } from './GridPiece';
 import { GameManager } from './GameManager';
 import { LightningEffect } from './LightningEffect';
 import { MatchFinder, MatchLink } from './MatchFinder';
+import { AudioContent } from './AudioContent';
 
 const { ccclass, property } = _decorator;
 
@@ -13,6 +14,10 @@ export class GridController extends Component {
     @property(Prefab) whiteDotPrefab: Prefab = null!;
     @property(Prefab) burstAnimPrefab: Prefab = null!;
     @property(LightningEffect) lightning: LightningEffect = null!;
+
+    // Assigned to "Woosh" and "Destroy" nodes from Hierarchy
+    @property(AudioContent) wooshSfx: AudioContent = null!;
+    @property(AudioContent) destroySfx: AudioContent = null!;
 
     @property(CCInteger) rows: number = 9;
     @property(CCInteger) cols: number = 9;
@@ -34,18 +39,12 @@ export class GridController extends Component {
         "blue": "#7693C0"
     };
 
-    private get spacing(): number {
-        return this.cellSize + this.padding;
-    }
+    private get spacing(): number { return this.cellSize + this.padding; }
 
-    onLoad() {
-        this.node.on(Node.EventType.TOUCH_END, this.onGridTouch, this);
-    }
+    onLoad() { this.node.on(Node.EventType.TOUCH_END, this.onGridTouch, this); }
 
     public initGrid(onComplete?: () => void) {
-        if (onComplete) {
-            this._onInitialFillComplete = onComplete;
-        }
+        if (onComplete) this._onInitialFillComplete = onComplete;
         this.generateGrid();
         this.triggerUnifiedFall();
     }
@@ -63,26 +62,18 @@ export class GridController extends Component {
     }
 
     private onGridTouch(event: any) {
-        if (!GameManager.instance.hasGameStarted) {
-            GameManager.instance.startGame();
-        }
-
+        if (!GameManager.instance.hasGameStarted) GameManager.instance.startGame();
         GameManager.instance.resetIdleTimer();
-
         if (this.isProcessing || (GameManager.instance && GameManager.instance.isGameOver)) return;
         
         const uiTransform = this.node.getComponent(UITransform)!;
         const localPos = uiTransform.convertToNodeSpaceAR(v3(event.getUILocation().x, event.getUILocation().y, 0));
-        
         const totalW = (this.cols - 1) * this.spacing;
         const totalH = (this.rows - 1) * this.spacing;
-        
         const c = Math.round((localPos.x + (totalW / 2)) / this.spacing);
         const r = Math.round(((totalH / 2) - localPos.y) / this.spacing);
-
-        if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
-            this.handleCellTap(r, c);
-        }
+        
+        if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) this.handleCellTap(r, c);
     }
 
     private handleCellTap(r: number, c: number) {
@@ -90,12 +81,13 @@ export class GridController extends Component {
         if (!targetNode) return;
         const piece = targetNode.getComponent(GridPiece);
         if (!piece) return;
-
+        
         const links = MatchFinder.getChainMatches(r, c, piece.colorId, this.grid, this.rows, this.cols);
         
-        if (links.length > 0) {
-            this.executeLotusSequence(piece.colorId, r, c, links);
-        }
+        // Ensure ripple audio starts from r1 for every new match
+        GameManager.instance.resetRippleIndex();
+
+        if (links.length > 0) this.executeLotusSequence(piece.colorId, r, c, links);
     }
 
     private async executeLotusSequence(colorId: string, startR: number, startC: number, links: MatchLink[]) {
@@ -103,6 +95,9 @@ export class GridController extends Component {
         const startNode = this.grid[startR][startC]!;
         const lotusPos = v3(startNode.position);
         const dotHex = this.colorMap[colorId] || "#FFFFFF";
+
+        // 1. Play ONLY Woosh for the initial lotus transformation
+        if (this.wooshSfx) this.wooshSfx.play();
 
         startNode.destroy();
         const lotus = instantiate(this.lotusPrefab);
@@ -115,99 +110,85 @@ export class GridController extends Component {
             const anim = animNode.getComponent(Animation);
             if (anim) {
                 const formattedColor = colorId.charAt(0).toUpperCase() + colorId.slice(1);
-                const clipName = `LotusAnim_${formattedColor}`;
-                anim.play(clipName);
+                anim.play(`LotusAnim_${formattedColor}`);
             }
         }
 
-        // Speed up the initial blossoming wait times
+        // Wait for Lotus spawn animation before starting lightning chain
         await new Promise(resolve => this.scheduleOnce(resolve, 0.3));
         await new Promise(resolve => this.scheduleOnce(resolve, 0.2));
 
+        // 2. Ripple SFX now starts HERE, inside the chain loop
         for (const link of links) {
-            if (this.lightning) {
-                this.lightning.drawLightning(link.origin, link.target.position, dotHex);
-            }
+            if (this.lightning) this.lightning.drawLightning(link.origin, link.target.position, dotHex);
+            
+            // Play r1, r2, r3... as the lightning connects to dots
+            GameManager.instance.playNextRipple();
 
             if (this.whiteDotPrefab) {
                 const bgDot = instantiate(this.whiteDotPrefab);
                 bgDot.parent = this.node;
                 bgDot.setPosition(link.target.position);
                 bgDot.setSiblingIndex(0);
-
+                
                 const sprite = bgDot.getComponent(Sprite) || bgDot.getComponentInChildren(Sprite);
                 if (sprite) {
                     const color = new Color().fromHEX(dotHex);
                     color.a = 235;
                     sprite.color = color;
                 }
-
+                
                 const peakScale = this.gridScale * 2.2; 
-                const originalScale = v3(this.gridScale, this.gridScale, 1);
-
                 tween(bgDot)
                     .to(0.1, { scale: v3(peakScale, peakScale, 1) }, { easing: 'sineOut' })
                     .parallel(
-                        tween().to(0.2, { scale: originalScale }, { easing: 'sineIn' }),
+                        tween().to(0.2, { scale: v3(this.gridScale, this.gridScale, 1) }, { easing: 'sineIn' }),
                         tween(sprite).to(0.2, { color: new Color(sprite!.color.r, sprite!.color.g, sprite!.color.b, 70) })
                     )
                     .call(() => { if (isValid(bgDot)) bgDot.destroy(); })
                     .start();
             }
-
-            // Sped up from 0.08 to 0.04 for snappier connecting feel
-            await new Promise(resolve => this.scheduleOnce(resolve, 0.04));
+            await new Promise(resolve => this.scheduleOnce(resolve, 0.05));
         }
 
-        // Wait slightly for the last lightning bolt to be seen
         this.scheduleOnce(() => {
             if (this.lightning) this.lightning.clearWeb();
-            
-            // --- Rotation triggered AFTER animation/connecting finishes ---
             tween(lotus)
                 .to(0.4, { angle: 360 }, { easing: 'quartOut' })
                 .call(() => {
-                    // This block executes after the rotation completes
                     links.forEach(link => {
                         const node = link.target;
                         const p = node.getComponent(GridPiece)!;
                         this.grid[p.row][p.col] = null;
                         this.playPopAndBurst(node, colorId);
                     });
-
                     this.grid[startR][startC] = null;
                     this.playPopAndBurst(lotus, colorId);
-
+                    
                     GameManager.instance.registerDotsCollected(colorId, links.length + 1);
                     GameManager.instance.decrementMoves();
-
-                    // Faster transition to pieces falling
+                    
                     this.scheduleOnce(() => this.triggerUnifiedFall(), 0.5);
                 })
                 .start();
-
         }, 0.2); 
     }
 
     private playPopAndBurst(node: Node, colorId: string) {
+        // 3. Play "Destroy" (Pop) sound
+        if (this.destroySfx) this.destroySfx.play();
+
         const pos = v3(node.position);
         if (this.burstAnimPrefab) {
             const burst = instantiate(this.burstAnimPrefab);
             burst.parent = this.node;
             burst.setPosition(pos);
-            burst.setSiblingIndex(this.node.children.length);
-
             const sprite = burst.getComponent(Sprite) || burst.getComponentInChildren(Sprite);
-            if (sprite) {
-                const hex = this.colorMap[colorId] || "#FFFFFF";
-                sprite.color = new Color().fromHEX(hex);
-            }
-
+            if (sprite) sprite.color = new Color().fromHEX(this.colorMap[colorId] || "#FFFFFF");
             const anim = burst.getComponent(Animation) || burst.getComponentInChildren(Animation);
             if (anim) anim.play();
             this.scheduleOnce(() => { if(isValid(burst)) burst.destroy(); }, 1.0);
         }
-
         tween(node)
             .to(0.1, { scale: v3(this.gridScale * 1.25, this.gridScale * 1.25, 1) })
             .to(0.15, { scale: v3(0, 0, 0) })
@@ -219,10 +200,8 @@ export class GridController extends Component {
         const totalW = (this.cols - 1) * this.spacing;
         const totalH = (this.rows - 1) * this.spacing;
         let longestAnimation = 0;
-
         for (let c = 0; c < this.cols; c++) {
             let emptySpaces = 0;
-
             for (let r = this.rows - 1; r >= 0; r--) {
                 if (this.grid[r][c] === null) {
                     emptySpaces++;
@@ -231,44 +210,29 @@ export class GridController extends Component {
                     const newRow = r + emptySpaces;
                     this.grid[newRow][c] = node;
                     this.grid[r][c] = null;
-
-                    const piece = node.getComponent(GridPiece)!;
-                    piece.row = newRow;
-
-                    const targetY = (totalH / 2) - (newRow * this.spacing);
+                    node.getComponent(GridPiece)!.row = newRow;
                     const duration = 0.3 + (emptySpaces * 0.05);
                     longestAnimation = Math.max(longestAnimation, duration);
-
-                    tween(node).to(duration, { position: v3(node.position.x, targetY, 0) }, { easing: 'bounceOut' }).start();
+                    tween(node).to(duration, { position: v3(node.position.x, (totalH / 2) - (newRow * this.spacing), 0) }, { easing: 'bounceOut' }).start();
                 }
             }
-
             for (let i = 0; i < emptySpaces; i++) {
                 const targetRow = emptySpaces - 1 - i;
-                const prefab = this.dotPrefabs[Math.floor(Math.random() * this.dotPrefabs.length)];
-                const dot = instantiate(prefab);
+                const dot = instantiate(this.dotPrefabs[Math.floor(Math.random() * this.dotPrefabs.length)]);
                 dot.parent = this.node;
                 dot.setScale(v3(this.gridScale, this.gridScale, 1));
-                
                 const p = dot.getComponent(GridPiece) || dot.addComponent(GridPiece);
                 p.row = targetRow; p.col = c;
-                
                 const startX = (c * this.spacing) - (totalW / 2);
-                const targetY = (totalH / 2) - (targetRow * this.spacing);
-                
                 dot.setPosition(startX, (totalH / 2) + 100 + (i * this.spacing));
                 this.grid[targetRow][c] = dot;
-
                 const duration = 0.4 + (targetRow * 0.05);
                 longestAnimation = Math.max(longestAnimation, duration);
-
-                tween(dot).to(duration, { position: v3(startX, targetY, 0) }, { easing: 'bounceOut' }).start();
+                tween(dot).to(duration, { position: v3(startX, (totalH / 2) - (targetRow * this.spacing), 0) }, { easing: 'bounceOut' }).start();
             }
         }
-        
-        this.scheduleOnce(() => { 
+        this.scheduleOnce(() => {
             this.isProcessing = false; 
-
             if (this._isInitialLoad && this._onInitialFillComplete) {
                 this._onInitialFillComplete();
                 this._onInitialFillComplete = null;

@@ -19,15 +19,27 @@ export class AudioContent extends Component {
     @property
     public PlayOnLoad = false;
 
-
     @property(EventHandler)
     public OnPlayingStart : EventHandler = new EventHandler();
 
     @property(EventHandler)
     public OnPlayingEnd : EventHandler = new EventHandler();
 
-    public AudioSource : AudioSource = null;
+    public AudioSource : AudioSource = null!;
 
+    onLoad() {
+        // Ensure AudioSource exists and is configured based on properties
+        this.AudioSource = this.getComponent(AudioSource) || this.addComponent(AudioSource);
+        this.AudioSource.clip = this.AudioClip;
+        this.AudioSource.loop = this.Loop;
+        this.AudioSource.volume = this.Volume;
+        this.AudioSource.playOnAwake = this.PlayOnLoad;
+    }
+
+    public play() {
+        if (this.AudioSource) {
+            this.AudioSource.play();
+            this.OnPlayingStart.emit([this.AudioName]);
+        }
+    }
 }
-
-

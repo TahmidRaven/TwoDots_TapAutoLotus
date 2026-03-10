@@ -2,6 +2,7 @@ import { _decorator, Component, Label, Node, v3, Vec3, CCFloat } from 'cc';
 import { GridController } from './GridController';
 import { VictoryScreen } from './VictoryScreen';
 import { TutorialHand } from './TutorialHand';
+import { AudioContent } from './AudioContent';
 
 const { ccclass, property } = _decorator;
 
@@ -17,6 +18,13 @@ export class GameManager extends Component {
     @property(VictoryScreen) victoryScreen: VictoryScreen = null!;
     @property(TutorialHand) tutorialHand: TutorialHand = null!;
 
+    @property([AudioContent]) rippleArray: AudioContent[] = [];
+    @property(AudioContent) winSfx: AudioContent = null!;
+    @property(AudioContent) failSfx: AudioContent = null!;
+    
+    // Linked to the "BGM" node in your hierarchy
+    @property(AudioContent) bgmSfx: AudioContent = null!;
+
     @property({ 
         type: CCFloat, 
         tooltip: "Seconds of inactivity before a hint appears" 
@@ -29,6 +37,7 @@ export class GameManager extends Component {
     private _isGameOver: boolean = false;
     private _gameStarted: boolean = false;
     private _idleTimer: number = 0;
+    private _rippleIndex: number = 0; 
 
     public get isGameOver() { return this._isGameOver; }
     public get hasGameStarted() { return this._gameStarted; }
@@ -48,13 +57,26 @@ export class GameManager extends Component {
 
     update(dt: number) {
         if (!this._gameStarted || this._isGameOver) return;
-
         this._idleTimer += dt;
-
         if (this._idleTimer >= this.hintDelay) {
             this.showHint();
             this._idleTimer = 0; 
         }
+    }
+
+    public playNextRipple() {
+        if (this.rippleArray.length > 0) {
+            const audio = this.rippleArray[this._rippleIndex];
+            if (audio) {
+                audio.play();
+            }
+            // Move to next sound, capping at the last one if the chain is very long
+            this._rippleIndex = Math.min(this._rippleIndex + 1, this.rippleArray.length - 1);
+        }
+    }
+
+    public resetRippleIndex() {
+        this._rippleIndex = 0;
     }
 
     private showHint() {
@@ -67,17 +89,20 @@ export class GameManager extends Component {
         }
     }
 
-    // Changed to public so GridController can call it
     public resetIdleTimer() {
         this._idleTimer = 0;
-        if (this.tutorialHand) {
-            this.tutorialHand.hide();
-        }
+        if (this.tutorialHand) this.tutorialHand.hide();
     }
 
     public startGame() {
         if (this._gameStarted) return;
         this._gameStarted = true;
+
+        // Play BGM when the user first interacts
+        if (this.bgmSfx) {
+            this.bgmSfx.play();
+        }
+
         this.resetIdleTimer();
     }
 
@@ -116,8 +141,8 @@ export class GameManager extends Component {
     private endGame(win: boolean) {
         if (this._isGameOver) return;
         this._isGameOver = true;
-        if (this.victoryScreen) {
-            this.victoryScreen.show(win);
-        }
+        if (win && this.winSfx) this.winSfx.play();
+        else if (!win && this.failSfx) this.failSfx.play();
+        if (this.victoryScreen) this.victoryScreen.show(win);
     }
 }
