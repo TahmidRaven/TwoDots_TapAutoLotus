@@ -63,12 +63,10 @@ export class GridController extends Component {
     }
 
     private onGridTouch(event: any) {
-        // Start the game if first touch
         if (!GameManager.instance.hasGameStarted) {
             GameManager.instance.startGame();
         }
 
-        // Immediately reset timer and hide hand on any grid tap
         GameManager.instance.resetIdleTimer();
 
         if (this.isProcessing || (GameManager.instance && GameManager.instance.isGameOver)) return;
@@ -139,15 +137,20 @@ export class GridController extends Component {
                 const sprite = bgDot.getComponent(Sprite) || bgDot.getComponentInChildren(Sprite);
                 if (sprite) {
                     const color = new Color().fromHEX(dotHex);
-                    color.a = 120;
+                    color.a = 235; // Start at 235 opacity
                     sprite.color = color;
                 }
 
-                const targetScale = v3(this.gridScale * 1.65, this.gridScale * 1.65, 1);
+                const peakScale = this.gridScale * 2.2; 
+                const originalScale = v3(this.gridScale, this.gridScale, 1);
 
+                // Sequential Ripple: Expand then Shrink back to 70 opacity
                 tween(bgDot)
-                    .to(0.3, { scale: targetScale }, { easing: 'sineOut' })
-                    .to(0.2, { scale: v3(0, 0, 0) }, { easing: 'sineIn' })
+                    .to(0.15, { scale: v3(peakScale, peakScale, 1) }, { easing: 'sineOut' })
+                    .parallel(
+                        tween().to(0.25, { scale: originalScale }, { easing: 'sineIn' }),
+                        tween(sprite).to(0.25, { color: new Color(sprite!.color.r, sprite!.color.g, sprite!.color.b, 70) }) // End at 70 opacity
+                    )
                     .call(() => { if (isValid(bgDot)) bgDot.destroy(); })
                     .start();
             }
