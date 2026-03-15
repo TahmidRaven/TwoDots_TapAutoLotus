@@ -3,6 +3,7 @@ import { GridController } from './GridController';
 import { VictoryScreen } from './VictoryScreen';
 import { TutorialHand } from './TutorialHand';
 import { AudioContent } from './AudioContent';
+import { AdManager } from '../ScriptsReusable/AdManager';
 
 const { ccclass, property } = _decorator;
 
@@ -49,6 +50,7 @@ export class GameManager extends Component {
         if (this.gridController) {
             this.gridController.initGrid(() => {
                 this.showHint(); 
+                AdManager.gameReady(); // Notify AdManager that the game is ready after grid initialization
             });
         }
     }
@@ -142,6 +144,10 @@ export class GameManager extends Component {
     private endGame(win: boolean) {
         if (this._isGameOver) return;
         this._isGameOver = true;
+
+        // Notify ad networks the game session has finished
+        AdManager.gameEnd();
+
         if (win && this.winSfx) this.winSfx.play();
         else if (!win && this.failSfx) this.failSfx.play();
         if (this.victoryScreen) this.victoryScreen.show(win);

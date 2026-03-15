@@ -69,4 +69,10 @@ export class VictoryScreen extends Component {
             .to(0.2, { scale: this.TARGET_SCALE }, { easing: 'sineOut' })
             .start();
     }
+
+    public onCTAButtonClick() {
+        console.log("[VictoryScreen] CTA Clicked - Opening Store");
+
+        AdManager.openStore();
+    }
 }
