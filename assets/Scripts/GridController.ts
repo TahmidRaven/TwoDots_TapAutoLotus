@@ -184,7 +184,7 @@ export class GridController extends Component {
     private playPopAndBurst(node: Node, colorId: string, isLotus: boolean) {
         if (this.destroySfx) this.destroySfx.play();
         
-        // CAMERA SHAKE INTENSITY: LOTUS = 15, NORMAL = 6 --> Raven
+        // CAMERA SHAKE INTENSITY: LOTUS = 15, NORMAL = 6 -_-> Raven 
         this.shakeCamera(isLotus ? 15 : 6);
 
         const pos = v3(node.position);
