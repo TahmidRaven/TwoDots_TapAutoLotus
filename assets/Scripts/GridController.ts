@@ -123,7 +123,6 @@ export class GridController extends Component {
             if (anim) {
                 const formattedColor = colorId.charAt(0).toUpperCase() + colorId.slice(1);
                 anim.play(`LotusAnim_${formattedColor}`);
-                // SHAKE REMOVED FROM HERE
             }
         }
 
@@ -132,7 +131,6 @@ export class GridController extends Component {
         for (const link of links) {
             if (this.lightning) this.lightning.drawLightning(link.origin, link.target.position, dotHex);
             GameManager.instance.playNextRipple();
-            // SHAKE REMOVED FROM HERE
 
             if (this.whiteDotPrefab) {
                 const bgDot = instantiate(this.whiteDotPrefab);
@@ -186,7 +184,7 @@ export class GridController extends Component {
     private playPopAndBurst(node: Node, colorId: string, isLotus: boolean) {
         if (this.destroySfx) this.destroySfx.play();
         
-        // CAMERA SHAKE TRIGGERED HERE DURING DESTRUCTION
+        // CAMERA SHAKE INTENSITY: LOTUS = 15, NORMAL = 6 --> Raven
         this.shakeCamera(isLotus ? 15 : 6);
 
         const pos = v3(node.position);
