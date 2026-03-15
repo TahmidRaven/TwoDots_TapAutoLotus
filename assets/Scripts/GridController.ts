@@ -15,9 +15,11 @@ export class GridController extends Component {
     @property(Prefab) burstAnimPrefab: Prefab = null!;
     @property(LightningEffect) lightning: LightningEffect = null!;
 
-    // Assigned to "Woosh" and "Destroy" nodes from Hierarchy
     @property(AudioContent) wooshSfx: AudioContent = null!;
     @property(AudioContent) destroySfx: AudioContent = null!;
+
+    @property(Node)
+    public cameraNode: Node = null!; 
 
     @property(CCInteger) rows: number = 9;
     @property(CCInteger) cols: number = 9;
@@ -83,11 +85,22 @@ export class GridController extends Component {
         if (!piece) return;
         
         const links = MatchFinder.getChainMatches(r, c, piece.colorId, this.grid, this.rows, this.cols);
-        
-        // Ensure ripple audio starts from r1 for every new match
         GameManager.instance.resetRippleIndex();
 
         if (links.length > 0) this.executeLotusSequence(piece.colorId, r, c, links);
+    }
+
+    private shakeCamera(intensity: number = 10) {
+        if (!this.cameraNode) return;
+        tween(this.cameraNode).stop();
+        const originalPos = v3(0, 0, 0); 
+        
+        tween(this.cameraNode)
+            .to(0.04, { position: v3(originalPos.x + (Math.random() - 0.5) * intensity, originalPos.y + (Math.random() - 0.5) * intensity, 0) })
+            .to(0.04, { position: v3(originalPos.x + (Math.random() - 0.5) * (intensity * 0.7), originalPos.y + (Math.random() - 0.5) * (intensity * 0.7), 0) })
+            .to(0.04, { position: v3(originalPos.x + (Math.random() - 0.5) * (intensity * 0.4), originalPos.y + (Math.random() - 0.5) * (intensity * 0.4), 0) })
+            .to(0.05, { position: originalPos }, { easing: 'quadOut' })
+            .start();
     }
 
     private async executeLotusSequence(colorId: string, startR: number, startC: number, links: MatchLink[]) {
@@ -96,7 +109,6 @@ export class GridController extends Component {
         const lotusPos = v3(startNode.position);
         const dotHex = this.colorMap[colorId] || "#FFFFFF";
 
-        // 1. Play ONLY Woosh for the initial lotus transformation
         if (this.wooshSfx) this.wooshSfx.play();
 
         startNode.destroy();
@@ -111,19 +123,18 @@ export class GridController extends Component {
             if (anim) {
                 const formattedColor = colorId.charAt(0).toUpperCase() + colorId.slice(1);
                 anim.play(`LotusAnim_${formattedColor}`);
+                this.shakeCamera(12);
             }
         }
 
-        // Wait for Lotus spawn animation before starting lightning chain
-        await new Promise(resolve => this.scheduleOnce(resolve, 0.3));
-        await new Promise(resolve => this.scheduleOnce(resolve, 0.2));
+        // Wait for the lotus to bloom significantly before starting lightning
+        // Adjusted for the new 1.3s duration
+        await new Promise(resolve => this.scheduleOnce(resolve, 0.7));
 
-        // 2. Ripple SFX now starts HERE, inside the chain loop
         for (const link of links) {
             if (this.lightning) this.lightning.drawLightning(link.origin, link.target.position, dotHex);
-            
-            // Play r1, r2, r3... as the lightning connects to dots
             GameManager.instance.playNextRipple();
+            this.shakeCamera(3);
 
             if (this.whiteDotPrefab) {
                 const bgDot = instantiate(this.whiteDotPrefab);
@@ -151,6 +162,7 @@ export class GridController extends Component {
             await new Promise(resolve => this.scheduleOnce(resolve, 0.05));
         }
 
+        // Wait for the 1.3s sequence to near completion before the final pop
         this.scheduleOnce(() => {
             if (this.lightning) this.lightning.clearWeb();
             tween(lotus)
@@ -160,23 +172,24 @@ export class GridController extends Component {
                         const node = link.target;
                         const p = node.getComponent(GridPiece)!;
                         this.grid[p.row][p.col] = null;
-                        this.playPopAndBurst(node, colorId);
+                        this.playPopAndBurst(node, colorId, false);
                     });
                     this.grid[startR][startC] = null;
-                    this.playPopAndBurst(lotus, colorId);
+                    this.playPopAndBurst(lotus, colorId, true);
                     
                     GameManager.instance.registerDotsCollected(colorId, links.length + 1);
                     GameManager.instance.decrementMoves();
                     
-                    this.scheduleOnce(() => this.triggerUnifiedFall(), 0.5);
+                    // Delay the fall slightly longer to let the bursts finish
+                    this.scheduleOnce(() => this.triggerUnifiedFall(), 0.6);
                 })
                 .start();
-        }, 0.2); 
+        }, 0.4); 
     }
 
-    private playPopAndBurst(node: Node, colorId: string) {
-        // 3. Play "Destroy" (Pop) sound
+    private playPopAndBurst(node: Node, colorId: string, isLotus: boolean) {
         if (this.destroySfx) this.destroySfx.play();
+        this.shakeCamera(isLotus ? 8 : 4);
 
         const pos = v3(node.position);
         if (this.burstAnimPrefab) {
@@ -187,7 +200,9 @@ export class GridController extends Component {
             if (sprite) sprite.color = new Color().fromHEX(this.colorMap[colorId] || "#FFFFFF");
             const anim = burst.getComponent(Animation) || burst.getComponentInChildren(Animation);
             if (anim) anim.play();
-            this.scheduleOnce(() => { if(isValid(burst)) burst.destroy(); }, 1.0);
+
+            // Destroy the burst effect after exactly 1.11 seconds
+            this.scheduleOnce(() => { if(isValid(burst)) burst.destroy(); }, 1.11);
         }
         tween(node)
             .to(0.1, { scale: v3(this.gridScale * 1.25, this.gridScale * 1.25, 1) })
@@ -211,7 +226,7 @@ export class GridController extends Component {
                     this.grid[newRow][c] = node;
                     this.grid[r][c] = null;
                     node.getComponent(GridPiece)!.row = newRow;
-                    const duration = 0.3 + (emptySpaces * 0.05);
+                    const duration = 0.35 + (emptySpaces * 0.05);
                     longestAnimation = Math.max(longestAnimation, duration);
                     tween(node).to(duration, { position: v3(node.position.x, (totalH / 2) - (newRow * this.spacing), 0) }, { easing: 'bounceOut' }).start();
                 }
