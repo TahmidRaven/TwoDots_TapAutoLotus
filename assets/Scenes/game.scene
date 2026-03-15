@@ -3535,10 +3535,6 @@
     "__prefab": null,
     "dotPrefabs": [
       {
-        "__uuid__": "e6635959-f9d9-4c77-aefc-0f839f311328",
-        "__expectedType__": "cc.Prefab"
-      },
-      {
         "__uuid__": "cc6950d5-55eb-4de2-b34b-69125d6dc088",
         "__expectedType__": "cc.Prefab"
       },
@@ -3548,10 +3544,6 @@
       },
       {
         "__uuid__": "198008cd-0d55-4976-8502-7c4178970960",
-        "__expectedType__": "cc.Prefab"
-      },
-      {
-        "__uuid__": "c89321f3-2ba9-427b-b7be-2412a290cc8b",
         "__expectedType__": "cc.Prefab"
       }
     ],

@@ -21,8 +21,6 @@ export class GameManager extends Component {
     @property([AudioContent]) rippleArray: AudioContent[] = [];
     @property(AudioContent) winSfx: AudioContent = null!;
     @property(AudioContent) failSfx: AudioContent = null!;
-    
-    // Linked to the "BGM" node in your hierarchy
     @property(AudioContent) bgmSfx: AudioContent = null!;
 
     @property({ 
@@ -33,7 +31,7 @@ export class GameManager extends Component {
 
     private _moves: number = 100;
     private _collected = { green: 0, darkBlue: 0, red: 0 };
-    private _goals = { green: 10, darkBlue: 10, red: 10 };
+    private _goals = { green: 50, darkBlue: 50, red: 50 };
     private _isGameOver: boolean = false;
     private _gameStarted: boolean = false;
     private _idleTimer: number = 0;
@@ -71,7 +69,10 @@ export class GameManager extends Component {
                 audio.play();
             }
             // Move to next sound, capping at the last one if the chain is very long
-            this._rippleIndex = Math.min(this._rippleIndex + 1, this.rippleArray.length - 1);
+            // this._rippleIndex = Math.min(this._rippleIndex + 1, this.rippleArray.length - 1);
+
+            // more than 11 in a chain will sound bad, so we just loop back to the start of the array after 11 --> Raven 
+            this._rippleIndex = (this._rippleIndex + 1) % this.rippleArray.length;
         }
     }
 
