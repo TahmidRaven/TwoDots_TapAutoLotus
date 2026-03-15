@@ -123,18 +123,16 @@ export class GridController extends Component {
             if (anim) {
                 const formattedColor = colorId.charAt(0).toUpperCase() + colorId.slice(1);
                 anim.play(`LotusAnim_${formattedColor}`);
-                this.shakeCamera(12);
+                // SHAKE REMOVED FROM HERE
             }
         }
 
-        // Wait for the lotus to bloom significantly before starting lightning
-        // Adjusted for the new 1.3s duration
         await new Promise(resolve => this.scheduleOnce(resolve, 0.7));
 
         for (const link of links) {
             if (this.lightning) this.lightning.drawLightning(link.origin, link.target.position, dotHex);
             GameManager.instance.playNextRipple();
-            this.shakeCamera(3);
+            // SHAKE REMOVED FROM HERE
 
             if (this.whiteDotPrefab) {
                 const bgDot = instantiate(this.whiteDotPrefab);
@@ -162,7 +160,6 @@ export class GridController extends Component {
             await new Promise(resolve => this.scheduleOnce(resolve, 0.05));
         }
 
-        // Wait for the 1.3s sequence to near completion before the final pop
         this.scheduleOnce(() => {
             if (this.lightning) this.lightning.clearWeb();
             tween(lotus)
@@ -180,7 +177,6 @@ export class GridController extends Component {
                     GameManager.instance.registerDotsCollected(colorId, links.length + 1);
                     GameManager.instance.decrementMoves();
                     
-                    // Delay the fall slightly longer to let the bursts finish
                     this.scheduleOnce(() => this.triggerUnifiedFall(), 0.6);
                 })
                 .start();
@@ -189,7 +185,9 @@ export class GridController extends Component {
 
     private playPopAndBurst(node: Node, colorId: string, isLotus: boolean) {
         if (this.destroySfx) this.destroySfx.play();
-        this.shakeCamera(isLotus ? 8 : 4);
+        
+        // CAMERA SHAKE TRIGGERED HERE DURING DESTRUCTION
+        this.shakeCamera(isLotus ? 15 : 6);
 
         const pos = v3(node.position);
         if (this.burstAnimPrefab) {
@@ -201,7 +199,6 @@ export class GridController extends Component {
             const anim = burst.getComponent(Animation) || burst.getComponentInChildren(Animation);
             if (anim) anim.play();
 
-            // Destroy the burst effect after exactly 1.11 seconds
             this.scheduleOnce(() => { if(isValid(burst)) burst.destroy(); }, 1.11);
         }
         tween(node)
